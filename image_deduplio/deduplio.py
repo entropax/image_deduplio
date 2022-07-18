@@ -196,12 +196,12 @@ class DeduplioApp():
 
     def run(self):
         start = time.time()
-        if not self.path:
-            print('You are NOT specify folder path! Try with -p PATH argument')
-            return 0
         if self.generate_test_amount:
             self.generate_random_collection(amount=self.generate_test_amount)
             print('\nCollection created! Check ./test_images/ folder')
+            return 0
+        if not self.path:
+            print('You are NOT specify folder path! Try with -p PATH argument')
             return 0
         if self.gui_folder_pick:
             self.path = self.select_folder() + '/'
