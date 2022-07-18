@@ -168,7 +168,7 @@ class DeduplioApp():
         for img_1_path, img_2_path in files:
             img_1 = Image.open(img_1_path)
             img_2 = Image.open(img_2_path)
-        while answer not in ['1', '2', 'c']:
+        while answer not in ['1', '2', 'c', 'q']:
             print(
                 'Duplicate files:\n',
                 f'File 1 {os.path.basename(img_1_path)} with resolution',
@@ -182,20 +182,21 @@ class DeduplioApp():
             answer = input('Enter here: ')
             if answer == '1':
                 os.remove(img_1_path)
-                print(f'warning! File {img_1_path} DELETE')
+                print(f'\nFile {img_1_path} was DELETE\n')
             if answer == '2':
                 os.remove(img_2_path)
-                print(f'warning! File {img_2_path} DELETE')
+                print(f'\nFile {img_2_path} was DELETE\n')
             if answer == 'c':
                 call('clear' if os.name == 'posix' else 'cls')
                 continue
             if answer == 'q':
                 call('clear' if os.name == 'posix' else 'cls')
-                print('Thanks for using this program!\n Bye!')
                 break
 
     def run(self):
         start = time.time()
+        if self.gui_folder_pick:
+            self.path = self.select_folder() + '/'
         if self.generate_test_amount:
             self.generate_random_collection(amount=self.generate_test_amount)
             print('\nCollection created! Check ./test_images/ folder')
@@ -203,13 +204,14 @@ class DeduplioApp():
         if not self.path:
             print('You are NOT specify folder path! Try with -p PATH argument')
             return 0
-        if self.gui_folder_pick:
-            self.path = self.select_folder() + '/'
         print(f'Check duplicates in *{self.path}* folder')
         dup_images, dup_cropped_images = self.find_duplicate(self.path)
         print(f'\nElapsed time: {time.time() - start:.0f} seconds, hurray!')
+        duplicate_amount = len(dup_images) + len(dup_cropped_images)
         self.delete_request(dup_images)
         self.delete_request(dup_cropped_images)
+        print(f'Congratulations! you delete {duplicate_amount} files!')
+        print('Thanks for using this program.\nBye dear user!')
 
 
 if __name__ == '__main__':
