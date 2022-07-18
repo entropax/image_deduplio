@@ -161,11 +161,12 @@ class DeduplioApp():
 
     def delete_request(self, files):
         '''Ask user to delete one duplication file.'''
-        answer = ''
         delete_counter = 0
+        print(files)
         if not files:
             return
         for img_1_path, img_2_path in files:
+            answer = ''
             img_1 = Image.open(img_1_path)
             img_2 = Image.open(img_2_path)
             while answer not in ['1', '2', 'c', 'q']:
@@ -181,24 +182,24 @@ class DeduplioApp():
                     )
                 answer = input('Enter here: ')
                 if answer == '1':
-                    delete_counter += 1
                     try:
                         os.remove(img_1_path)
+                        delete_counter += 1
                         print(f'\nFile {img_1_path} was DELETE\n')
                     except FileNotFoundError:
                         print('File not found')
                 if answer == '2':
-                    delete_counter += 1
                     try:
                         os.remove(img_2_path)
+                        delete_counter += 1
+                        print(f'\nFile {img_2_path} was DELETE\n')
                     except FileNotFoundError:
                         print('File not found')
-                    print(f'\nFile {img_2_path} was DELETE\n')
                 if answer == 'c':
                     call('clear' if os.name == 'posix' else 'cls')
                 if answer == 'q':
                     call('clear' if os.name == 'posix' else 'cls')
-                    break
+                    # break
         print(f'\nCongratulations! you delete {delete_counter} files!')
         print('Thanks for using this program.\nBye dear user!')
 
@@ -222,8 +223,7 @@ class DeduplioApp():
             if not duplicate_amount:
                 print('You dont have any duplicate, it is amazing!')
                 return 0
-            self.delete_request(dup_images)
-            self.delete_request(dup_cropped_images)
+            self.delete_request(dup_images + dup_cropped_images)
         except FileNotFoundError:
             print('Path is not valid! Try with -p PATH argument, or add "/"')
 
