@@ -19,7 +19,7 @@ from tqdm import tqdm
 from tkinter import Tk, filedialog
 
 
-# set CLI arguments
+# parse CLI arguments
 def parser_cli():
     parser = argparse.ArgumentParser(
             prog='deduplio.py',
@@ -160,9 +160,9 @@ class DeduplioApp():
         return (duplicated_images, duplicated_cropped_images)
 
     def delete_request(self, files):
-        """Ask user to delete one duplication file.
-        :return: True if the answer is Y."""
-        answer = ""
+        '''Ask user to delete one duplication file.'''
+        answer = None
+        delete_counter = 0
         if not files:
             return
         for img_1_path, img_2_path in files:
@@ -181,9 +181,11 @@ class DeduplioApp():
                 )
             answer = input('Enter here: ')
             if answer == '1':
+                delete_counter += 1
                 os.remove(img_1_path)
                 print(f'\nFile {img_1_path} was DELETE\n')
             if answer == '2':
+                delete_counter += 1
                 os.remove(img_2_path)
                 print(f'\nFile {img_2_path} was DELETE\n')
             if answer == 'c':
@@ -192,6 +194,8 @@ class DeduplioApp():
             if answer == 'q':
                 call('clear' if os.name == 'posix' else 'cls')
                 break
+        print(f'\nCongratulations! you delete {delete_counter} files!')
+        print('Thanks for using this program.\nBye dear user!')
 
     def run(self):
         start = time.time()
@@ -201,17 +205,18 @@ class DeduplioApp():
             self.generate_random_collection(amount=self.generate_test_amount)
             print('\nCollection created! Check ./test_images/ folder')
             return 0
-        if not self.path:
-            print('You are NOT specify folder path! Try with -p PATH argument')
+        if not os.path.isdir(self.path):
+            print('Path is not valid! Try with -p PATH argument, or add "/"')
             return 0
         print(f'Check duplicates in *{self.path}* folder')
         dup_images, dup_cropped_images = self.find_duplicate(self.path)
         print(f'\nElapsed time: {time.time() - start:.0f} seconds, hurray!')
         duplicate_amount = len(dup_images) + len(dup_cropped_images)
+        if not duplicate_amount:
+            print('You dont have any duplicate, it is amazing!')
+            return 0
         self.delete_request(dup_images)
         self.delete_request(dup_cropped_images)
-        print(f'Congratulations! you delete {duplicate_amount} files!')
-        print('Thanks for using this program.\nBye dear user!')
 
 
 if __name__ == '__main__':
@@ -219,6 +224,5 @@ if __name__ == '__main__':
     app = DeduplioApp(
             path=args.path,
             gui_folder_pick=args.gui,
-            generate_test_amount=args.gen_amount,
-            )
+            generate_test_amount=args.gen_amount)
     app.run()
