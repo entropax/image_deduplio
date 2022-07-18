@@ -161,11 +161,13 @@ class DeduplioApp():
 
     def delete_request(self, files):
         '''Ask user to delete one duplication file.'''
+        answer = ''
         delete_counter = 0
-        print(files)
         if not files:
             return
         for img_1_path, img_2_path in files:
+            if answer == 'q':
+                break
             answer = ''
             img_1 = Image.open(img_1_path)
             img_2 = Image.open(img_2_path)
@@ -184,6 +186,9 @@ class DeduplioApp():
                 if answer == '1':
                     try:
                         os.remove(img_1_path)
+                        for name in files:
+                            if img_1_path in name:
+                                files.remove(name)
                         delete_counter += 1
                         print(f'\nFile {img_1_path} was DELETE\n')
                     except FileNotFoundError:
@@ -191,6 +196,9 @@ class DeduplioApp():
                 if answer == '2':
                     try:
                         os.remove(img_2_path)
+                        for name in files:
+                            if img_1_path in name:
+                                files.remove(name)
                         delete_counter += 1
                         print(f'\nFile {img_2_path} was DELETE\n')
                     except FileNotFoundError:
@@ -199,7 +207,7 @@ class DeduplioApp():
                     call('clear' if os.name == 'posix' else 'cls')
                 if answer == 'q':
                     call('clear' if os.name == 'posix' else 'cls')
-                    # break
+                    break
         print(f'\nCongratulations! you delete {delete_counter} files!')
         print('Thanks for using this program.\nBye dear user!')
 
