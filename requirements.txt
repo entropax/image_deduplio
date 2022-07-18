@@ -3,5 +3,4 @@ cv==1.0.0
 opencv-python==4.6.0.66
 ImageHash==4.2.1
 requests==2.27.1
-numpy==1.23.0
 tqdm==4.64.0
