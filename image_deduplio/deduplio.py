@@ -161,7 +161,7 @@ class DeduplioApp():
 
     def delete_request(self, files):
         '''Ask user to delete one duplication file.'''
-        answer = None
+        answer = ''
         delete_counter = 0
         if not files:
             return
@@ -181,19 +181,21 @@ class DeduplioApp():
                     )
                 answer = input('Enter here: ')
                 if answer == '1':
-                    answer = None
                     delete_counter += 1
-                    os.remove(img_1_path)
-                    print(f'\nFile {img_1_path} was DELETE\n')
+                    try:
+                        os.remove(img_1_path)
+                        print(f'\nFile {img_1_path} was DELETE\n')
+                    except FileNotFoundError:
+                        print('File not found')
                 if answer == '2':
-                    answer = None
                     delete_counter += 1
-                    os.remove(img_2_path)
+                    try:
+                        os.remove(img_2_path)
+                    except FileNotFoundError:
+                        print('File not found')
                     print(f'\nFile {img_2_path} was DELETE\n')
                 if answer == 'c':
-                    answer = None
                     call('clear' if os.name == 'posix' else 'cls')
-                    continue
                 if answer == 'q':
                     call('clear' if os.name == 'posix' else 'cls')
                     break
