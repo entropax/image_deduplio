@@ -181,10 +181,12 @@ class DeduplioApp():
                 )
             answer = input('Enter here: ')
             if answer == '1':
+                answer = None
                 delete_counter += 1
                 os.remove(img_1_path)
                 print(f'\nFile {img_1_path} was DELETE\n')
             if answer == '2':
+                answer = None
                 delete_counter += 1
                 os.remove(img_2_path)
                 print(f'\nFile {img_2_path} was DELETE\n')
@@ -209,15 +211,18 @@ class DeduplioApp():
             print('Path is not valid! Try with -p PATH argument, or add "/"')
             return 0
         print(f'Check duplicates in *{self.path}* folder')
-        dup_images, dup_cropped_images = self.find_duplicate(self.path)
-        print(f'\nElapsed time: {time.time() - start:.0f} seconds, hurray!')
-        duplicate_amount = len(dup_images) + len(dup_cropped_images)
-        print(f'\n{duplicate_amount} duplicate files founded!\n')
-        if not duplicate_amount:
-            print('You dont have any duplicate, it is amazing!')
-            return 0
-        self.delete_request(dup_images)
-        self.delete_request(dup_cropped_images)
+        try:
+            dup_images, dup_cropped_images = self.find_duplicate(self.path)
+            print(f'\nElapsed time: {time.time() - start:.0f} seconds, hurray!')
+            duplicate_amount = len(dup_images) + len(dup_cropped_images)
+            print(f'\n{duplicate_amount} duplicate files founded!\n')
+            if not duplicate_amount:
+                print('You dont have any duplicate, it is amazing!')
+                return 0
+            self.delete_request(dup_images)
+            self.delete_request(dup_cropped_images)
+        except FileNotFoundError:
+            print('Path is not valid! Try with -p PATH argument, or add "/"')
 
 
 if __name__ == '__main__':
