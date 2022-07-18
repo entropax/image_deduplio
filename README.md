@@ -45,8 +45,8 @@ python3 -m pip install --user --upgrade pip && pip install -r requirements.txt`
 ```
 ## Usage ##
 * For help type `python3 image_deduplio/deduplio.py -h`
-* Search duplicate in folder path `python3 image_deduplio/deduplio.py -p PATH`
 * Generate test collection `python3 image_deduplio/deduplio.py -gen AMOUNT`
+* Search duplicate in folder path `python3 image_deduplio/deduplio.py -p PATH`
 * Simply GUI window for folder pick `python3 image_deduplio/deduplio.py -gui`
 <!-- > You can also make chmod +x and add to your patch
 
