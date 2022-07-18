@@ -48,24 +48,11 @@ python3 -m venv ./.venv && source .venv/bin/activate && \
 python3 -m pip install --user --upgrade pip && pip install -r requirements.txt`
 ```
 ## Usage ##
-enter `python3 image_deduplio/deduplio.py -h' for help
+* For help type `python3 image_deduplio/deduplio.py -h`
+* Search duplicate in folder path `python3 image_deduplio/deduplio.py -p PATH`
+* Generate test collection `python3 image_deduplio/deduplio.py -gen AMOUNT`
 <!-- > You can also make chmod +x and add to your patch
 
-## for fine cropped image (pattern find)
-* openCv with match find TM_CCOEFF_NORMED, after grey sczling
- [exem](http://www.learningaboutelectronics.com/Articles/How-to-match-an-image-embedded-in-another-image-Python-OpenCV.php)
- [deta](https://docs.opencv.org/4.x/df/dfb/group__imgproc__object.html#ga3a7850640f1fe1f58fe91a2d7583695d)
-* [Brute-Force Matching with SIFT](https://docs.opencv.org/3.4/dc/dc3/tutorial_py_matcher.html)
-* using PIL PIXEL BY PIXEL aftergreyscaling
-* using p-hash and hamming with pixel by pixel
-## for equal image
-* p-hash with hamming distance [soue](https://pypi.org/project/ImageHash/)
-* average hash?
-* https://pypi.org/project/SSIM-PIL/
-* piLoow with hash and hammin [ex](https://stackoverflow.com/questions/71514124/find-near-duplicate-and-faked-images)
-* тупо по хешу
-* по пикселям
-* Average hashing (AHash)
 
 ### Особенности реализации
 -->
