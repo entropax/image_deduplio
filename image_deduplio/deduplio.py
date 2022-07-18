@@ -18,6 +18,7 @@ from PIL import Image, ImageTk
 from imagehash import phash
 import requests
 from tqdm import tqdm
+from tkinter import Tk, filedialog
 
 # set CLI arguments
 def parser_cli():
@@ -63,7 +64,10 @@ class DeduplioApp():
         self.generate_test_amount=generate_test_amount
 
     def select_folder(self):
-        pass
+        root = Tk()
+        root.withdraw()
+        return filedialog.askdirectory()
+
 
     def download_image(self, path, search_term, resolution, postfix):
         response = requests.get(
@@ -164,7 +168,8 @@ class DeduplioApp():
 
 
     def delete_request(self, files):
-        pass
+        for file_1, file_2 in files:
+            print(files)
 
     def run(self):
         start = time.time()
