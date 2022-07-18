@@ -126,7 +126,7 @@ class DeduplioApp():
         print('\n***generated some randomly cropped images in collection***')
         self.random_crop_images(images_dir, amount=3)
 
-    def is_image_duplicate(self, img1_path, img2_path, hamming_distance=5):
+    def is_image_duplicate(self, img1_path, img2_path, hamming_distance=3):
         with Image.open(img1_path) as img1, Image.open(img2_path) as img2:
             img1_hash = phash(img1)
             img2_hash = phash(img2)
@@ -140,7 +140,7 @@ class DeduplioApp():
             return False
         try:
             result = cv.matchTemplate(img, template, cv.TM_CCOEFF_NORMED).max()
-            if result >= 0.9:
+            if result >= 0.95:
                 return True
         except Exception as e:
             return e
@@ -164,7 +164,7 @@ class DeduplioApp():
 
     def delete_request(self, files):
         '''Ask user to delete one duplication file.'''
-        deleted_counter = 0
+        to_deleted = set()
         answer = ''
         for img1_path, img2_path in files:
             if answer == 'q':
@@ -184,25 +184,17 @@ class DeduplioApp():
                         )
                     answer = input('Enter here: ')
                     if answer == '1':
-                        try:
-                            os.remove(img1_path)
-                            deleted_counter += 1
-                            print(f'\nFile {img1_path} was DELETE\n')
-                        except FileNotFoundError:
-                            print('File not found')
+                        to_deleted.add(img1_path)
                     if answer == '2':
-                        try:
-                            os.remove(img2_path)
-                            deleted_counter += 1
-                            print(f'\nFile {img2_path} was DELETE\n')
-                        except FileNotFoundError:
-                            print('File not found')
+                        to_deleted.add(img2_path)
                     if answer == 'c':
                         call('clear' if os.name == 'posix' else 'cls')
                     if answer == 'q':
                         call('clear' if os.name == 'posix' else 'cls')
                         break
-        print(f'\nCongratulations! you delete {deleted_counter} files!')
+        print(f'\nCongratulations! you delete {len(to_deleted)} files!')
+        for img in to_deleted:
+            os.remove(img)
         print('Thanks for using this program.\nBye dear user!')
 
     def run(self):
