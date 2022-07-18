@@ -137,8 +137,8 @@ class DeduplioApp():
             result = cv.matchTemplate(img, template, cv.TM_CCOEFF_NORMED).max()
             if result >= 0.75:
                 return True
-        except:
-            return False
+        except Exception as e:
+            return e
 
     def find_duplicate(self, path):
         duplicated_images = []
@@ -174,13 +174,12 @@ class DeduplioApp():
                 f'File 1 {os.path.basename(img_1_path)} with resolution',
                 f'{img_1.size[0]}x{img_1.size[1]}\n',
                 f'File 2 {os.path.basename(img_2_path)} with resolution',
-                f'{img_2.size[0]}x{img_2.size[1]}\n'
+                f'{img_2.size[0]}x{img_2.size[1]}\n\n',
+                'Type "1" or "2" for deleting File 1/File 2\n',
+                'Type "c" to continue\n',
+                'Type "q" to exit\n',
                 )
-            answer = input('''
-                    Type file number to delete File "1" or File "2"\n'
-                    Type "c" to continue\n
-                    Type "q" to exit\n
-                    Enter here: ''')
+            answer = input('Enter here: ')
             if answer == '1':
                 os.remove(img_1_path)
                 print(f'warning! File {img_1_path} DELETE')
@@ -188,7 +187,6 @@ class DeduplioApp():
                 os.remove(img_2_path)
                 print(f'warning! File {img_2_path} DELETE')
             if answer == 'c':
-                answer = ''
                 call('clear' if os.name == 'posix' else 'cls')
                 continue
             if answer == 'q':
@@ -198,6 +196,9 @@ class DeduplioApp():
 
     def run(self):
         start = time.time()
+        if not self.path:
+            print('You are NOT specify folder path! Try with -p PATH argument')
+            return 0
         if self.generate_test_amount:
             self.generate_random_collection(amount=self.generate_test_amount)
             print('\nCollection created! Check ./test_images/ folder')
