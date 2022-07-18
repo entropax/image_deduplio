@@ -212,6 +212,7 @@ class DeduplioApp():
         dup_images, dup_cropped_images = self.find_duplicate(self.path)
         print(f'\nElapsed time: {time.time() - start:.0f} seconds, hurray!')
         duplicate_amount = len(dup_images) + len(dup_cropped_images)
+        print(f'\n{duplicate_amount} duplicate files founded!\n')
         if not duplicate_amount:
             print('You dont have any duplicate, it is amazing!')
             return 0
