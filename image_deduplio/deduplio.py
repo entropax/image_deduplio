@@ -222,8 +222,8 @@ class DeduplioApp():
                 return 0
             self.delete_request(dup_images)
             self.delete_request(dup_cropped_images)
-        # except FileNotFoundError:
-            # print('Path is not valid! Try with -p PATH argument, or add "/"')
+        except FileNotFoundError:
+            print('Path is not valid! Try with -p PATH argument, or add "/"')
 
 
 if __name__ == '__main__':
