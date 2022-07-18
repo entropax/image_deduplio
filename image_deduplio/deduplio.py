@@ -11,6 +11,7 @@ import argparse
 import collections
 from random import choice, sample
 import itertools
+from subprocess import call
 
 import numpy as np
 import cv2 as cv
@@ -114,14 +115,14 @@ class DeduplioApp():
         os.makedirs(images_dir, exist_ok=True)
         categories = ['train', 'kitty', 'programming', 'space']
         resolutions = ['small', 'medium', 'large', 'original']
-        for number in range(1, amount+1):
+        for number in tqdm(range(1, amount+1)):
             self.download_image(
                     images_dir,
                     choice(categories),
                     choice(resolutions),
                     number
                     )
-        print('\n***generate some fage duplicates images***')
+        print('\n***generate some fake duplicates images***')
         self.generate_fake_duplicates(images_dir, amount=1)
         print('\n***generate some randomly cropped images***')
         self.random_crop_images(images_dir, amount=3)
@@ -168,8 +169,44 @@ class DeduplioApp():
 
 
     def delete_request(self, files):
-        for file_1, file_2 in files:
-            print(files)
+        """
+        Ask user to delete one duplication file.
+        :return: True if the answer is Y.
+        """
+        answer = ""
+        if not files:
+            return
+        for img_1_path, img_2_path in files:
+            img_1 = Image.open(img_1_path)
+            img_2 = Image.open(img_2_path)
+        while answer not in ['1', '2', 'c']:
+            print(
+                f'Duplicate files:\n',
+                f'File 1 {os.path.basename(img_1_path)} with resolution',
+                f'{img_1.size[0]}x{img_1.size[1]}\n',
+                f'File 2 {os.path.basename(img_2_path)} with resolution',
+                f'{img_2.size[0]}x{img_2.size[1]}\n'
+                )
+            answer = input(
+                    f'Type file number to delete File "1" or File "2"\n'
+                    f'Type "c" to continue\n'
+                    f'Type "q" to exit\n'
+                    f'Enter here: ')
+            if answer == '1':
+                os.remove(img_1_path)
+                print(f'warning! File {img_1_path} DELETE')
+            if answer == '2':
+                os.remove(img_2_path)
+                print(f'warning! File {img_2_path} DELETE')
+            if answer == 'c':
+                answer = ''
+                call('clear' if os.name =='posix' else 'cls')
+                continue
+            if answer == 'q':
+                call('clear' if os.name =='posix' else 'cls')
+                print('Thanks for using this program!\n Bye!')
+                break
+
 
     def run(self):
         start = time.time()
