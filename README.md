@@ -25,14 +25,10 @@
 Среди 30 изображений должны быть, 2 одинаковых изображения (например поезда) и 3 одинаковых изображения (например животные) с кропом (т.е. по разному обрезанных).
 С использованием готовых библиотек python необходимо реализовать дедупликацию изображений – т.е. определение копий, запрос на подтверждение и удаление из коллекции.*
 
-**Aditional tasks (my self thoughts):**
+**Aditional tasks (my self stuff):**
 * make automate process of create images collection for testing
-* add TUI interface
-* add simple GUI interface
-* add multiprocessing support
-* add mmap support for large files
-* write test
-
+* add light TUI interface
+* add simple GUI interface for folder pick
 
 ## Install ##
 * clone this repo `git clone https://github.com/entropax/image_deduplio`
@@ -51,6 +47,7 @@ python3 -m pip install --user --upgrade pip && pip install -r requirements.txt`
 * For help type `python3 image_deduplio/deduplio.py -h`
 * Search duplicate in folder path `python3 image_deduplio/deduplio.py -p PATH`
 * Generate test collection `python3 image_deduplio/deduplio.py -gen AMOUNT`
+* Simply GUI window for folder pick `python3 image_deduplio/deduplio.py -gui`
 <!-- > You can also make chmod +x and add to your patch
 
 
@@ -68,3 +65,10 @@ c растягиваием изображения до исходного раз
   визуально для человека (визуальная идентичность, вроде расстояния Хемминга)?<br>
   одинаковые цветовые пиксели (побитное машинное совпадение)?<br>
   являются ли перевернутые изображения одинаковыми?<br>
+
+**Future improvements:**
+* write test coverage
+* add comparison in background
+* add threads for image downloader
+* add multiprocessing support
+* add mmap support for large files
