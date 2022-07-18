@@ -168,34 +168,35 @@ class DeduplioApp():
         for img_1_path, img_2_path in files:
             img_1 = Image.open(img_1_path)
             img_2 = Image.open(img_2_path)
-        while answer not in ['1', '2', 'c', 'q']:
-            print(
-                'Duplicate files:\n',
-                f'File 1 {os.path.basename(img_1_path)} with resolution',
-                f'{img_1.size[0]}x{img_1.size[1]}\n',
-                f'File 2 {os.path.basename(img_2_path)} with resolution',
-                f'{img_2.size[0]}x{img_2.size[1]}\n\n',
-                'Type "1" or "2" for deleting File 1/File 2\n',
-                'Type "c" to continue\n',
-                'Type "q" to exit\n',
-                )
-            answer = input('Enter here: ')
-            if answer == '1':
-                answer = None
-                delete_counter += 1
-                os.remove(img_1_path)
-                print(f'\nFile {img_1_path} was DELETE\n')
-            if answer == '2':
-                answer = None
-                delete_counter += 1
-                os.remove(img_2_path)
-                print(f'\nFile {img_2_path} was DELETE\n')
-            if answer == 'c':
-                call('clear' if os.name == 'posix' else 'cls')
-                continue
-            if answer == 'q':
-                call('clear' if os.name == 'posix' else 'cls')
-                break
+            while answer not in ['1', '2', 'c', 'q']:
+                print(
+                    'Duplicate files:\n',
+                    f'File 1 {os.path.basename(img_1_path)} with resolution',
+                    f'{img_1.size[0]}x{img_1.size[1]}\n',
+                    f'File 2 {os.path.basename(img_2_path)} with resolution',
+                    f'{img_2.size[0]}x{img_2.size[1]}\n\n',
+                    'Type "1" or "2" for deleting File 1/File 2\n',
+                    'Type "c" to continue\n',
+                    'Type "q" to exit\n',
+                    )
+                answer = input('Enter here: ')
+                if answer == '1':
+                    answer = None
+                    delete_counter += 1
+                    os.remove(img_1_path)
+                    print(f'\nFile {img_1_path} was DELETE\n')
+                if answer == '2':
+                    answer = None
+                    delete_counter += 1
+                    os.remove(img_2_path)
+                    print(f'\nFile {img_2_path} was DELETE\n')
+                if answer == 'c':
+                    answer = None
+                    call('clear' if os.name == 'posix' else 'cls')
+                    continue
+                if answer == 'q':
+                    call('clear' if os.name == 'posix' else 'cls')
+                    break
         print(f'\nCongratulations! you delete {delete_counter} files!')
         print('Thanks for using this program.\nBye dear user!')
 
@@ -221,8 +222,8 @@ class DeduplioApp():
                 return 0
             self.delete_request(dup_images)
             self.delete_request(dup_cropped_images)
-        except FileNotFoundError:
-            print('Path is not valid! Try with -p PATH argument, or add "/"')
+        # except FileNotFoundError:
+            # print('Path is not valid! Try with -p PATH argument, or add "/"')
 
 
 if __name__ == '__main__':
