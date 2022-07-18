@@ -10,9 +10,14 @@
 <br>
 <h2>Table of content</h2>
 
-[_TOC_]
+<!-- [_TOC_] -->
+- [Description](#description)
+  - [The code is written according to the task by](#description)
+- [Install](#install)
+- [Usage](#usage)
+- [Note](#note)
 
-## Description ##
+## Description
 ### The code is written according to the task by [ФГУП «ГРЧЦ»](https://grfc.ru/grfc/)
 **Поставленная задача:**
 <br>
@@ -62,10 +67,10 @@ enter `python3 image_deduplio/deduplio.py -h' for help
 * по пикселям
 * Average hashing (AHash)
 
-### Особенности реализации ###
+### Особенности реализации
 -->
 ---------------
-#### Note: ####
+#### Note
 На взгляд автора хотелось бы уточнения в следующих вопросах:
 > * Как выполнен crop:<br>
 с замещенем белым (сохранением размера, crop fit white)?<br>
