@@ -1,6 +1,6 @@
 #! /bin/python
 """
-image_deduplio - Python package for finding duplicate or similar images
+image_deduplio - Python script for finding duplicate and similar images
 """
 
 import os
@@ -24,8 +24,8 @@ def parser_cli():
     parser = argparse.ArgumentParser(
             prog='deduplio.py',
             description='''
-            Find duplicated image and crop image parent,
-            also provide delete duplicates
+            Find duplicated and cropped images and
+            providing delete duplicates
             ''')
     parser.add_argument(
             '-p',
@@ -33,6 +33,7 @@ def parser_cli():
             help='specify directory contain collection of images',
             nargs='?',
             const='./test_images/',
+            default='.',
             dest='path',
             )
     parser.add_argument(
@@ -58,7 +59,7 @@ class DeduplioApp():
             generate_test_amount=None,
             gui_folder_pick=False,
             ):
-        self.path = path
+        self.path = os.path.normpath(path)
         self.gui_folder_pick = gui_folder_pick
         self.generate_test_amount = generate_test_amount
 
@@ -68,16 +69,16 @@ class DeduplioApp():
         return filedialog.askdirectory()
 
     def download_image(self, path, search_term, resolution, postfix):
-        response = requests.get(
-                f"https://source.unsplash.com/random/{resolution}/?"
-                + str(search_term) + ", allow_redirects=True")
-        print(
-                f"Download file and saving to: {path}"
-                + str(search_term) + "_" + str(postfix) + ".jpg")
-        open(
-                f"{path}"
-                + str(search_term) + "_"
-                + str(postfix) + ".jpg", 'wb').write(response.content)
+        try:
+            response = requests.get(
+                f'https://source.unsplash.com/random/{resolution}/?'
+                + str(search_term) + ', allow_redirects=True')
+            response.raise_for_status()
+        except requests.RequestException as error:
+            print(error)
+        with open(f'{path}{search_term}_{postfix}.jpg','wb') as img:
+                img.write(response.content)
+        return f'Saved to: {path}{search_term}_{postfix}.jpg'
 
     def generate_fake_duplicates(self, path, amount):
         img_files = list(filter(lambda x: 'jpg' in x, os.listdir(path)))
@@ -108,24 +109,28 @@ class DeduplioApp():
             images_dir='./test_images/',
             amount=30):
         os.makedirs(images_dir, exist_ok=True)
+        downloaded = []
         categories = ['train', 'kitty', 'programming', 'space']
         resolutions = ['small', 'medium', 'large', 'original']
-        for number in tqdm(range(1, amount+1)):
-            self.download_image(
+        print('Loading images')
+        for number in tqdm(range(1, amount+1), position=0, leave=True):
+            downloaded.append(self.download_image(
                     images_dir,
                     choice(categories),
                     choice(resolutions),
                     number
-                    )
-        print('\n***generate some fake duplicates images***')
+                    ))
+        print(*downloaded, sep='\n')
+        print('\n***generated some fake duplicates images in collection***')
         self.generate_fake_duplicates(images_dir, amount=1)
-        print('\n***generate some randomly cropped images***')
+        print('\n***generated some randomly cropped images in collection***')
         self.random_crop_images(images_dir, amount=3)
 
-    def is_image_duplicate(self, img_path_1, img_path_2, hamming_distance=5):
-        img_1 = Image.open(img_path_1)
-        img_2 = Image.open(img_path_2)
-        if phash(img_1) - phash(img_2) < hamming_distance:
+    def is_image_duplicate(self, img1_path, img2_path, hamming_distance=5):
+        with Image.open(img1_path) as img1, Image.open(img2_path) as img2:
+            img1_hash = phash(img1)
+            img2_hash = phash(img2)
+        if img1_hash - img2_hash < hamming_distance:
             return True
 
     def is_image_cropped(self, img_path, template_path):
@@ -135,7 +140,7 @@ class DeduplioApp():
             return False
         try:
             result = cv.matchTemplate(img, template, cv.TM_CCOEFF_NORMED).max()
-            if result >= 0.75:
+            if result >= 0.9:
                 return True
         except Exception as e:
             return e
@@ -143,78 +148,67 @@ class DeduplioApp():
     def find_duplicate(self, path):
         duplicated_images = []
         duplicated_cropped_images = []
-        files = [path + file_name for file_name in os.listdir(path)]
+        files = [os.path.normpath(path + '/' + file_name)
+                for file_name in os.listdir(path)]
         img_files = list(filter(lambda x: '.jpg' in x, files))
         img_pairs = list(itertools.combinations(img_files, 2))
-        # print(*img_files, sep='\n')
-        for img_1, img_2 in tqdm(img_pairs):
-            if self.is_image_duplicate(img_1, img_2):
-                # print(img_1 + ' and ' + img_2 + " DULEP")
-                duplicated_images.append((img_1, img_2))
+        for img_1_path, img_2_path in tqdm(img_pairs):
+            if self.is_image_duplicate(img_1_path, img_2_path):
+                duplicated_images.append((img_1_path, img_2_path))
                 for pair in img_pairs:
-                    if img_1 in pair:
+                    if img_1_path in pair:
                         img_pairs.remove(pair)
-            elif self.is_image_cropped(img_1, img_2):
-                # print(img_1 + ' and ' + img_2 + " CROPPED" )
-                duplicated_cropped_images.append((img_1, img_2))
+            elif self.is_image_cropped(img_1_path, img_2_path):
+                duplicated_cropped_images.append((img_1_path, img_2_path))
         return (duplicated_images, duplicated_cropped_images)
 
     def delete_request(self, files):
         '''Ask user to delete one duplication file.'''
+        deleted_counter = 0
         answer = ''
-        delete_counter = 0
-        if not files:
-            return
-        for img_1_path, img_2_path in files:
+        for img1_path, img2_path in files:
             if answer == 'q':
                 break
             answer = ''
-            img_1 = Image.open(img_1_path)
-            img_2 = Image.open(img_2_path)
-            while answer not in ['1', '2', 'c', 'q']:
-                print(
-                    'Duplicate files:\n',
-                    f'File 1 {os.path.basename(img_1_path)} with resolution',
-                    f'{img_1.size[0]}x{img_1.size[1]}\n',
-                    f'File 2 {os.path.basename(img_2_path)} with resolution',
-                    f'{img_2.size[0]}x{img_2.size[1]}\n\n',
-                    'Type "1" or "2" for deleting File 1/File 2\n',
-                    'Type "c" to continue\n',
-                    'Type "q" to exit\n',
-                    )
-                answer = input('Enter here: ')
-                if answer == '1':
-                    try:
-                        os.remove(img_1_path)
-                        for name in files:
-                            if img_1_path in name:
-                                files.remove(name)
-                        delete_counter += 1
-                        print(f'\nFile {img_1_path} was DELETE\n')
-                    except FileNotFoundError:
-                        print('File not found')
-                if answer == '2':
-                    try:
-                        os.remove(img_2_path)
-                        for name in files:
-                            if img_1_path in name:
-                                files.remove(name)
-                        delete_counter += 1
-                        print(f'\nFile {img_2_path} was DELETE\n')
-                    except FileNotFoundError:
-                        print('File not found')
-                if answer == 'c':
-                    call('clear' if os.name == 'posix' else 'cls')
-                if answer == 'q':
-                    call('clear' if os.name == 'posix' else 'cls')
-                    break
-        print(f'\nCongratulations! you delete {delete_counter} files!')
+            with Image.open(img1_path) as img1, Image.open(img2_path) as img2:
+                while answer not in ['1', '2', 'c', 'q']:
+                    print(
+                        'Duplicate files:\n',
+                        f'File_1 {os.path.basename(img1_path)} with resolution',
+                        f'{img1.size[0]}x{img1.size[1]}\n',
+                        f'File_2 {os.path.basename(img2_path)} with resolution',
+                        f'{img2.size[0]}x{img2.size[1]}\n\n',
+                        'Type "1" or "2" for deleting File_1/File_2\n',
+                        'Type "c" to continue\n',
+                        'Type "q" to exit\n',
+                        )
+                    answer = input('Enter here: ')
+                    if answer == '1':
+                        try:
+                            os.remove(img1_path)
+                            deleted_counter += 1
+                            print(f'\nFile {img1_path} was DELETE\n')
+                        except FileNotFoundError:
+                            print('File not found')
+                    if answer == '2':
+                        try:
+                            os.remove(img2_path)
+                            deleted_counter += 1
+                            print(f'\nFile {img2_path} was DELETE\n')
+                        except FileNotFoundError:
+                            print('File not found')
+                    if answer == 'c':
+                        call('clear' if os.name == 'posix' else 'cls')
+                    if answer == 'q':
+                        call('clear' if os.name == 'posix' else 'cls')
+                        break
+        print(f'\nCongratulations! you delete {deleted_counter} files!')
         print('Thanks for using this program.\nBye dear user!')
 
     def run(self):
         start = time.time()
         if self.gui_folder_pick:
-            self.path = self.select_folder() + '/'
+            self.path = os.path.normpath(self.select_folder())
         if self.generate_test_amount:
             self.generate_random_collection(amount=self.generate_test_amount)
             print('\nCollection created! Check ./test_images/ folder')
@@ -222,7 +216,7 @@ class DeduplioApp():
         if not os.path.isdir(self.path):
             print('Path is not valid! Try with -p PATH argument, or add "/"')
             return 0
-        print(f'Check duplicates in *{self.path}* folder')
+        print(f'Check duplicates in {self.path} folder')
         try:
             dup_images, dup_cropped_images = self.find_duplicate(self.path)
             print(f'\nElapsed time: {time.time() - start:.0f} seconds, hurray!')
