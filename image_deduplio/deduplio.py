@@ -1,25 +1,23 @@
 #! /bin/python
 """
-dedupex - Python package for finding duplicate or similar images within folders
-https://github.com/elisemercury/Duplicate-Image-Finder
+image_deduplio - Python package for finding duplicate or similar images
 """
 
 import os
 import shutil
 import time
 import argparse
-import collections
 from random import choice, sample
 import itertools
 from subprocess import call
 
-import numpy as np
 import cv2 as cv
-from PIL import Image, ImageTk
+from PIL import Image
 from imagehash import phash
 import requests
 from tqdm import tqdm
 from tkinter import Tk, filedialog
+
 
 # set CLI arguments
 def parser_cli():
@@ -62,18 +60,17 @@ class DeduplioApp():
             ):
         self.path = path
         self.gui_folder_pick = gui_folder_pick
-        self.generate_test_amount=generate_test_amount
+        self.generate_test_amount = generate_test_amount
 
     def select_folder(self):
         root = Tk()
         root.withdraw()
         return filedialog.askdirectory()
 
-
     def download_image(self, path, search_term, resolution, postfix):
         response = requests.get(
                 f"https://source.unsplash.com/random/{resolution}/?"
-                + str(search_term)+", allow_redirects=True")
+                + str(search_term) + ", allow_redirects=True")
         print(
                 f"Download file and saving to: {path}"
                 + str(search_term) + "_" + str(postfix) + ".jpg")
@@ -90,7 +87,6 @@ class DeduplioApp():
             print(f'duplicate: {img_name} with _DUPLICATE.jpg preffix')
             shutil.copyfile(source, dest)
 
-
     def random_crop_images(self, path, amount):
         img_files = list(filter(lambda x: 'jpg' in x, os.listdir(path)))
         for img_name in sample(img_files, amount):
@@ -105,8 +101,7 @@ class DeduplioApp():
                 cropped_image = img.crop(crop_box)
                 print(f'crop and save: {img_name} with _CROPPED.jpg preffix')
                 cropped_image.save(
-                        path + os.path.splitext(img_name)[0] +'_CROPPED.jpg')
-
+                        path + os.path.splitext(img_name)[0] + '_CROPPED.jpg')
 
     def generate_random_collection(
             self,
@@ -127,13 +122,11 @@ class DeduplioApp():
         print('\n***generate some randomly cropped images***')
         self.random_crop_images(images_dir, amount=3)
 
-
     def is_image_duplicate(self, img_path_1, img_path_2, hamming_distance=5):
         img_1 = Image.open(img_path_1)
         img_2 = Image.open(img_path_2)
         if phash(img_1) - phash(img_2) < hamming_distance:
             return True
-
 
     def is_image_cropped(self, img_path, template_path):
         img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)
@@ -146,7 +139,6 @@ class DeduplioApp():
                 return True
         except:
             return False
-
 
     def find_duplicate(self, path):
         duplicated_images = []
@@ -167,12 +159,9 @@ class DeduplioApp():
                 duplicated_cropped_images.append((img_1, img_2))
         return (duplicated_images, duplicated_cropped_images)
 
-
     def delete_request(self, files):
-        """
-        Ask user to delete one duplication file.
-        :return: True if the answer is Y.
-        """
+        """Ask user to delete one duplication file.
+        :return: True if the answer is Y."""
         answer = ""
         if not files:
             return
@@ -181,17 +170,17 @@ class DeduplioApp():
             img_2 = Image.open(img_2_path)
         while answer not in ['1', '2', 'c']:
             print(
-                f'Duplicate files:\n',
+                'Duplicate files:\n',
                 f'File 1 {os.path.basename(img_1_path)} with resolution',
                 f'{img_1.size[0]}x{img_1.size[1]}\n',
                 f'File 2 {os.path.basename(img_2_path)} with resolution',
                 f'{img_2.size[0]}x{img_2.size[1]}\n'
                 )
-            answer = input(
-                    f'Type file number to delete File "1" or File "2"\n'
-                    f'Type "c" to continue\n'
-                    f'Type "q" to exit\n'
-                    f'Enter here: ')
+            answer = input('''
+                    Type file number to delete File "1" or File "2"\n'
+                    Type "c" to continue\n
+                    Type "q" to exit\n
+                    Enter here: ''')
             if answer == '1':
                 os.remove(img_1_path)
                 print(f'warning! File {img_1_path} DELETE')
@@ -200,13 +189,12 @@ class DeduplioApp():
                 print(f'warning! File {img_2_path} DELETE')
             if answer == 'c':
                 answer = ''
-                call('clear' if os.name =='posix' else 'cls')
+                call('clear' if os.name == 'posix' else 'cls')
                 continue
             if answer == 'q':
-                call('clear' if os.name =='posix' else 'cls')
+                call('clear' if os.name == 'posix' else 'cls')
                 print('Thanks for using this program!\n Bye!')
                 break
-
 
     def run(self):
         start = time.time()
