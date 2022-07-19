@@ -10,6 +10,7 @@ import argparse
 from random import choice, sample
 import itertools
 from subprocess import call
+from urllib.request import urlopen
 
 import cv2 as cv
 from PIL import Image
@@ -70,12 +71,19 @@ class DeduplioApp():
 
     def download_image(self, path, search_term, resolution, postfix):
         try:
+            response = urlopen('https://www.google.com/', timeout=5)
+        except:
+            print('\n Sorry, NO internet')
+            exit()
+        try:
             response = requests.get(
-                f'https://source.unsplash.com/random/{resolution}/?'
-                + str(search_term) + ', allow_redirects=True')
+                f'https://source.unsplash.com/random/{resolution}/?',
+                f'{search_term}',
+                allow_redirects=True)
             response.raise_for_status()
         except requests.RequestException as error:
             print(error)
+            exit()
         with open(f'{path}{search_term}_{postfix}.jpg','wb') as img:
                 img.write(response.content)
         return f'Saved to: {path}{search_term}_{postfix}.jpg'
@@ -115,7 +123,7 @@ class DeduplioApp():
             exit()
         os.makedirs(images_dir, exist_ok=True)
         downloaded = []
-        categories = ['train', 'kitty', 'programming', 'space']
+        categories = ['train', 'kitty', 'cat', 'dog', 'programming', 'space']
         resolutions = ['small', 'medium', 'large', 'original']
         print('Loading images')
         for number in tqdm(range(1, amount+1), position=0, leave=True):
@@ -150,29 +158,34 @@ class DeduplioApp():
             return False
         try:
             result = cv.matchTemplate(img, template, cv.TM_CCOEFF_NORMED).max()
-            if result >= 0.95:
+            if result >= 0.9:
                 return True
         except Exception as e:
-            return e
+            return False
+        return False
 
     def find_duplicate(self, path):
-        print(f'Check duplicates in {self.path} folder')
+        print(f'\nCheck duplicates in {self.path} folder')
         duplicated_images = []
         duplicated_cropped_images = []
         files = [os.path.normpath(path + '/' + file_name)
                 for file_name in os.listdir(path)]
         img_files = list(filter(lambda x: '.jpg' in x, files))
+        if not img_files:
+            print(f'You dont have any images in folder {path}')
+            exit()
         img_pairs = list(itertools.combinations(img_files, 2))
-        for img_1_path, img_2_path in tqdm(img_pairs):
-            if self.is_image_duplicate(img_1_path, img_2_path):
-                duplicated_images.append((img_1_path, img_2_path))
+        for img1_path, img2_path in tqdm(img_pairs):
+            if self.is_image_duplicate(img1_path, img2_path):
+                duplicated_images.append((img1_path, img2_path))
                 for pair in img_pairs:
-                    if img_1_path in pair:
+                    if img1_path in pair:
                         img_pairs.remove(pair)
-            elif self.is_image_cropped(img_1_path, img_2_path):
-                duplicated_cropped_images.append((img_1_path, img_2_path))
-        dup_amount = (len(duplicated_images) + len(duplicated_cropped_images))
-        print(f'\n{dup_amount//2} duplicate files founded!')
+                        continue
+            if self.is_image_cropped(img1_path, img2_path):
+                duplicated_cropped_images.append((img1_path, img2_path))
+        dup_amount = len(duplicated_images + duplicated_cropped_images)
+        print(f'\n{dup_amount} duplicate pairs founded!')
         if not dup_amount:
             print(f'\n{dup_amount} duplicate files founded!\n')
             print('You dont have any duplicate, it is amazing!')
@@ -188,7 +201,7 @@ class DeduplioApp():
         print('Thanks for using this program.\nBye dear user!')
         exit()
 
-    def term_ui(self, files):
+    def __term_ui(self, files):
         '''Ask user to delete one duplication file.'''
         to_deleted = ['',]
         for img1_path, img2_path in files:
@@ -196,7 +209,7 @@ class DeduplioApp():
             with Image.open(img1_path) as img1, Image.open(img2_path) as img2:
                 while answer not in ['1', '2', 'c', 'q', 'cls']:
                     print(
-                        'Duplicate files:\n',
+                        '\nDuplicate files:\n',
                         f'File_1 {os.path.basename(img1_path)} with resolution',
                         f'{img1.size[0]}x{img1.size[1]}\n',
                         f'File_2 {os.path.basename(img2_path)} with resolution',
@@ -205,20 +218,13 @@ class DeduplioApp():
                         'Type "c" to continue\n',
                         'Type "cls" to clear screen\n',
                         'Type "q" to exit\n',
-                        f'Duplicate files left {len(files)//2}:\n',
-                        f'\nLast marks file {to_deleted[-1]}:\n',
+                        f'Duplicate files marks {len(to_deleted)-1}:\n',
                         )
                     answer = input('Enter here: ')
                     if answer == '1':
                         to_deleted.append(img1_path)
-                        for pair in files:
-                            if img1_path in pair:
-                                files.remove(pair)
                     if answer == '2':
                         to_deleted.append(img2_path)
-                        for pair in files:
-                            if img1_path in pair:
-                                files.remove(pair)
                     if answer == 'c':
                         call('clear' if os.name == 'posix' else 'cls')
                     if answer == 'cls':
@@ -245,7 +251,7 @@ class DeduplioApp():
             start = time.time()
             dup_images, dup_cropped_images = self.find_duplicate(self.path)
             print(f'\nElapsed time: {time.time() - start:.0f} seconds, nice!\n')
-            self.term_ui(dup_images + dup_cropped_images)
+            self.__term_ui(dup_images + dup_cropped_images)
         except FileNotFoundError:
             print('Path is not valid! Try with -p PATH argument, or add "/"')
 
