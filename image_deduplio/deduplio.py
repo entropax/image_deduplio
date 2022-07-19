@@ -85,7 +85,7 @@ class DeduplioApp():
         for img_name in sample(img_files, amount):
             source = path + img_name
             dest = path + os.path.splitext(img_name)[0] + '_DUPLICATE.jpg'
-            print(f'duplicate: {img_name} with _DUPLICATE.jpg preffix')
+            print(f'duplicate: {img_name} with _DUPLICATE preffix')
             shutil.copyfile(source, dest)
 
     def random_crop_images(self, path, amount):
@@ -100,7 +100,7 @@ class DeduplioApp():
                         choice(range(height, height//2-1, -1)),
                         )
                 cropped_image = img.crop(crop_box)
-                print(f'crop and save: {img_name} with _CROPPED.jpg preffix')
+                print(f'crop and save: {img_name} with _CROPPED preffix')
                 cropped_image.save(
                         path + os.path.splitext(img_name)[0] + '_CROPPED.jpg')
 
@@ -108,6 +108,11 @@ class DeduplioApp():
             self,
             images_dir='./test_images/',
             amount=30):
+        if amount == None:
+            return 0
+        if amount <= 0:
+            print('Input not zero or negative amount!')
+            exit()
         os.makedirs(images_dir, exist_ok=True)
         downloaded = []
         categories = ['train', 'kitty', 'programming', 'space']
@@ -125,6 +130,11 @@ class DeduplioApp():
         self.generate_fake_duplicates(images_dir, amount=1)
         print('\n***generated some randomly cropped images in collection***')
         self.random_crop_images(images_dir, amount=3)
+        print('\nCollection created! Check ./test_images/ folder')
+        answer = input(f'Do you want scan "{images_dir}*" type "y"/"n": ')
+        self.path = os.path.normpath(images_dir)
+        if answer != 'y':
+            exit()
 
     def is_image_duplicate(self, img1_path, img2_path, hamming_distance=3):
         with Image.open(img1_path) as img1, Image.open(img2_path) as img2:
@@ -146,6 +156,7 @@ class DeduplioApp():
             return e
 
     def find_duplicate(self, path):
+        print(f'Check duplicates in {self.path} folder')
         duplicated_images = []
         duplicated_cropped_images = []
         files = [os.path.normpath(path + '/' + file_name)
@@ -160,64 +171,81 @@ class DeduplioApp():
                         img_pairs.remove(pair)
             elif self.is_image_cropped(img_1_path, img_2_path):
                 duplicated_cropped_images.append((img_1_path, img_2_path))
+        dup_amount = len(duplicated_images) + len(duplicated_cropped_images)
+        print(f'\n{dup_amount} duplicate files founded!')
+        if not dup_amount:
+            print(f'\n{dup_amount} duplicate files founded!\n')
+            print('You dont have any duplicate, it is amazing!')
+            exit()
         return (duplicated_images, duplicated_cropped_images)
 
-    def delete_request(self, files):
+    def term_ui(self, files):
         '''Ask user to delete one duplication file.'''
-        to_deleted = set()
-        answer = ''
+        to_deleted = ['',]
         for img1_path, img2_path in files:
-            if answer == 'q':
-                break
             answer = ''
             with Image.open(img1_path) as img1, Image.open(img2_path) as img2:
-                while answer not in ['1', '2', 'c', 'q']:
+                while answer not in ['1', '2', 'c', 'q', 'cls']:
                     print(
                         'Duplicate files:\n',
                         f'File_1 {os.path.basename(img1_path)} with resolution',
                         f'{img1.size[0]}x{img1.size[1]}\n',
                         f'File_2 {os.path.basename(img2_path)} with resolution',
                         f'{img2.size[0]}x{img2.size[1]}\n\n',
-                        'Type "1" or "2" for deleting File_1/File_2\n',
+                        'Type "1" or "2" for mark File_1/File_2 to delete\n',
                         'Type "c" to continue\n',
+                        'Type "cls" to clear screen\n',
                         'Type "q" to exit\n',
+                        f'Duplicate files left {len(files)//2}:\n',
+                        f'\nLast marks file {to_deleted[-1]}:\n',
                         )
                     answer = input('Enter here: ')
                     if answer == '1':
-                        to_deleted.add(img1_path)
+                        to_deleted.append(img1_path)
+                        for pair in files:
+                            if img1_path in pair:
+                                files.remove(pair)
                     if answer == '2':
-                        to_deleted.add(img2_path)
+                        to_deleted.append(img2_path)
+                        for pair in files:
+                            if img1_path in pair:
+                                files.remove(pair)
                     if answer == 'c':
                         call('clear' if os.name == 'posix' else 'cls')
-                    if answer == 'q':
+                    if answer == 'cls':
+                        answer = ''
                         call('clear' if os.name == 'posix' else 'cls')
-                        break
-        print(f'\nCongratulations! you delete {len(to_deleted)} files!')
+                    if answer == 'q':
+                        to_deleted = set(to_deleted)
+                        to_deleted.remove('')
+                        print('\n', *to_deleted, sep='\n')
+                        answer = input('Do you want to delete this files y/n: ')
+                        if answer == 'y':
+                            for img in to_deleted:
+                                os.remove(img)
+                        print(f'\nNice! You deleted all marks files!')
+                        print('Thanks for using this program.\nBye dear user!')
+                        exit()
+        to_deleted = set(to_deleted)
+        to_deleted.remove('')
+        print('\n', *to_deleted, sep='\n')
         for img in to_deleted:
             os.remove(img)
+        print(f'\nCongratulations! you delete {len(to_deleted)} files!')
         print('Thanks for using this program.\nBye dear user!')
 
     def run(self):
-        start = time.time()
         if self.gui_folder_pick:
             self.path = os.path.normpath(self.select_folder())
-        if self.generate_test_amount:
-            self.generate_random_collection(amount=self.generate_test_amount)
-            print('\nCollection created! Check ./test_images/ folder')
-            return 0
+        self.generate_random_collection(amount=self.generate_test_amount)
         if not os.path.isdir(self.path):
             print('Path is not valid! Try with -p PATH argument, or add "/"')
-            return 0
-        print(f'Check duplicates in {self.path} folder')
+            exit()
         try:
+            start = time.time()
             dup_images, dup_cropped_images = self.find_duplicate(self.path)
-            print(f'\nElapsed time: {time.time() - start:.0f} seconds, hurray!')
-            duplicate_amount = len(dup_images) + len(dup_cropped_images)
-            print(f'\n{duplicate_amount} duplicate files founded!\n')
-            if not duplicate_amount:
-                print('You dont have any duplicate, it is amazing!')
-                return 0
-            self.delete_request(dup_images + dup_cropped_images)
+            print(f'\nElapsed time: {time.time() - start:.0f} seconds, nice!\n')
+            self.term_ui(dup_images + dup_cropped_images)
         except FileNotFoundError:
             print('Path is not valid! Try with -p PATH argument, or add "/"')
 
