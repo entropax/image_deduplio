@@ -171,13 +171,22 @@ class DeduplioApp():
                         img_pairs.remove(pair)
             elif self.is_image_cropped(img_1_path, img_2_path):
                 duplicated_cropped_images.append((img_1_path, img_2_path))
-        dup_amount = len(duplicated_images) + len(duplicated_cropped_images)
-        print(f'\n{dup_amount} duplicate files founded!')
+        dup_amount = (len(duplicated_images) + len(duplicated_cropped_images))
+        print(f'\n{dup_amount//2} duplicate files founded!')
         if not dup_amount:
             print(f'\n{dup_amount} duplicate files founded!\n')
             print('You dont have any duplicate, it is amazing!')
             exit()
         return (duplicated_images, duplicated_cropped_images)
+
+    def delete_files_dialog(self, files):
+        answer = input('Do you want to delete this files y/n: ')
+        if answer == 'y':
+            for img in files:
+                os.remove(img)
+        print(f'\nNice! You deleted all marks files!')
+        print('Thanks for using this program.\nBye dear user!')
+        exit()
 
     def term_ui(self, files):
         '''Ask user to delete one duplication file.'''
@@ -219,20 +228,11 @@ class DeduplioApp():
                         to_deleted = set(to_deleted)
                         to_deleted.remove('')
                         print('\n', *to_deleted, sep='\n')
-                        answer = input('Do you want to delete this files y/n: ')
-                        if answer == 'y':
-                            for img in to_deleted:
-                                os.remove(img)
-                        print(f'\nNice! You deleted all marks files!')
-                        print('Thanks for using this program.\nBye dear user!')
-                        exit()
+                        self.delete_files_dialog(to_deleted)
         to_deleted = set(to_deleted)
         to_deleted.remove('')
         print('\n', *to_deleted, sep='\n')
-        for img in to_deleted:
-            os.remove(img)
-        print(f'\nCongratulations! you delete {len(to_deleted)} files!')
-        print('Thanks for using this program.\nBye dear user!')
+        self.delete_files_dialog(to_deleted)
 
     def run(self):
         if self.gui_folder_pick:
