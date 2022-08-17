@@ -65,10 +65,3 @@ c растягиваием изображения до исходного раз
   визуально для человека (визуальная идентичность, вроде расстояния Хемминга)?<br>
   одинаковые цветовые пиксели (побитное машинное совпадение)?<br>
   являются ли перевернутые изображения одинаковыми?<br>
-
-**Future improvements:**
-* write test coverage
-* add comparison in background
-* add threads for image downloader
-* add multiprocessing support
-* add mmap support for large files
